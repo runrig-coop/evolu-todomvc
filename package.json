@@ -9,6 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@effect/schema": "^0.72.4",
+    "@evolu/common": "^5.4.4",
+    "@evolu/common-web": "^8.2.1",
+    "effect": "^3.7.3",
     "vue": "^3.4.37"
   },
   "devDependencies": {
