@@ -1,5 +1,30 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+import {
+  NonEmptyString1000,
+  SqliteBoolean,
+  id,
+  table,
+  database,
+} from '@evolu/common';
+import { createEvolu } from '@evolu/common-web';
+import HelloWorld from './components/HelloWorld.vue';
+
+const TodoId = id('todo');
+type TodoId = typeof TodoId.Type;
+
+const TodoTable = table({
+  id: TodoId,
+  title: NonEmptyString1000,
+  isCompleted: SqliteBoolean,
+});
+type TodoTable = typeof TodoTable.Type;
+
+const Database = database({
+  todo: TodoTable,
+});
+type Database = typeof Database.Type;
+
+createEvolu(Database);
 </script>
 
 <template>
