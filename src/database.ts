@@ -6,10 +6,10 @@ import {
   database,
 } from '@evolu/common';
 
-const TodoId = id('todo');
+export const TodoId = id('todo');
 export type TodoId = typeof TodoId.Type;
 
-const TodoTable = table({
+export const TodoTable = table({
   id: TodoId,
   title: NonEmptyString1000,
   completed: SqliteBoolean,
