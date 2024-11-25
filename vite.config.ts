@@ -8,4 +8,7 @@ export default defineConfig({
     exclude: ["@evolu/common", "@evolu/common-web", "@sqlite.org/sqlite-wasm"],
   },
   worker: { format: "es" },
+  server: {
+    port: 37014,
+  },
 });
