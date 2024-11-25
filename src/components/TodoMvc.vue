@@ -29,8 +29,8 @@ enum FilterKeys {
 type FilterPredicate = (todos: TodoItem[]) => TodoItem[];
 const filters: { [k in FilterKeys]: FilterPredicate } = {
   all: (todos) => todos,
-  active: (todos) => todos.filter((todo) => !todo.completed),
-  completed: (todos) => todos.filter((todo) => todo.completed),
+  active: (todos) => todos.filter((todo) => todo.completed === 0),
+  completed: (todos) => todos.filter((todo) => todo.completed === 1),
 };
 
 // state
@@ -79,9 +79,10 @@ function toggleAll(e: Event) {
 }
 
 function toggleOne(todo: TodoItem) {
-  if (index.value > -1) {
-    const completed = cast(!todo.completed);
-    todos.value[index.value] = { ...todo, completed };
+  const i = todos.value.findIndex(t => t.id === todo.id);
+  if (i > -1) {
+    const completed = cast(todo.completed < 1);
+    todos.value[i] = { ...todo, completed };
     evolu.update('todo', { id: todo.id, completed });
   }
 }
@@ -167,10 +168,18 @@ function onHashChange() {
           v-for="todo in filteredTodos"
           class="todo"
           :key="todo.id"
-          :class="{ completed: todo.completed, editing: todo.id === selected?.id }"
+          :class="{
+            completed: todo.completed > 0,
+            editing: todo.id === selected?.id,
+          }"
         >
           <div class="view">
-            <input class="toggle" type="checkbox" @change="toggleOne(todo)" >
+            <input
+              class="toggle"
+              type="checkbox"
+              :checked="todo.completed > 0"
+              @change="toggleOne(todo)"
+            >
             <label @dblclick="editTodo(todo)">{{ todo.title }}</label>
             <button class="destroy" @click="removeTodo(todo)"></button>
           </div>
