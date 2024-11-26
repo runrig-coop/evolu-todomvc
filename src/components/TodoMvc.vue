@@ -5,13 +5,16 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
+import { Effect, Exit } from 'effect';
 import * as S from '@effect/schema/Schema';
-import { NonEmptyString1000, SqliteBoolean } from '@evolu/common';
+import { NonEmptyString1000, parseMnemonic, SqliteBoolean } from '@evolu/common';
 import { cast, NotNull } from '@evolu/common/public';
 import { createEvolu } from '@evolu/common-web';
 import { Database, TodoId } from '../database';
 
 const evolu = createEvolu(Database);
+const owner = evolu.getOwner();
+const mnemonicShown = ref(false);
 
 interface TodoItem {
   id: TodoId;
@@ -141,6 +144,34 @@ function onHashChange() {
     visibility.value = FilterKeys.All;
   }
 }
+
+function showMnemonic () {
+  const mnemonic = owner?.mnemonic;
+  if (mnemonic) mnemonicShown.value = !mnemonicShown.value;
+}
+
+function restoreOwner() {
+  const mnemonic = prompt('Your Mnemonic');
+  if (mnemonic === null) return;
+  parseMnemonic(mnemonic)
+    .pipe(Effect.runPromiseExit)
+    .then(
+      Exit.match({
+        onFailure: (error) => {
+          alert(JSON.stringify(error, null, 2));
+        },
+        onSuccess: (mnemonic) => {
+          evolu.restoreOwner(mnemonic);
+        },
+      }),
+    );
+}
+
+function resetOwner() {
+  if (confirm("Are you sure? It will delete all your local data.")) {
+    evolu.resetOwner();
+  }
+}
 </script>
 
 <template>
@@ -215,8 +246,61 @@ function onHashChange() {
       </button>
     </footer>
   </section>
+  <div class="owner-actions">
+    <p>
+      <button class="erase" @click="resetOwner" >
+        Erase All Data
+      </button>
+    </p>
+    <p>
+      <button @click="restoreOwner" >
+        Restore Owner & Sync
+      </button>
+    </p>
+    <p>
+      <button type="button" @click="showMnemonic" >
+        {{ `${mnemonicShown ? 'Hide' : 'Show'} Mnemonic` }}
+      </button>
+    </p>
+    <p
+      class="mnemonic"
+      :class="{ shown: owner && owner.mnemonic && mnemonicShown }"
+    >
+      {{ owner?.mnemonic }}
+    </p>
+  </div>
 </template>
 
 <style>
 @import "https://unpkg.com/todomvc-app-css@2.4.1/index.css";
+
+.owner-actions {
+  right: 0;
+  margin: 65px auto 0;
+  line-height: 1em;
+  color: #4d4d4d;
+  font-size: 11px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  text-align: center;
+}
+.owner-actions button {
+  border: none;
+  color: inherit;
+  text-decoration: none;
+}
+.owner-actions button:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+.owner-actions button:focus {
+  box-shadow: 0 0 2px 2px #CF7D7D;
+  outline: 0;
+}
+.owner-actions button.erase {
+  color: #b83f45;
+  font-weight: 700;
+}
+.mnemonic:not(.shown) {
+  filter: blur(.375em);
+}
 </style>
